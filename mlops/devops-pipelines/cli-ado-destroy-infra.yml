@@ -1,0 +1,45 @@
+# Copyright (c) Microsoft Corporation. All rights reserved.
+# Licensed under the MIT License.
+
+variables:
+- template: ../../config-infra-prod.yml
+
+# This sets up the optional triggers for the running the pipeline.
+# Note: This pipeline is triggered by a manual trigger.
+#       This is to avoid running the pipeline when the pipeline is updated.
+#
+#       See the documentation for more information.
+#       https://learn.microsoft.com/en-us/azure/devops/pipelines/build/triggers?view=azure-devops
+trigger:
+- none
+
+# This the image that is used to run the pipeline
+# Note: This is the image that is used to run the pipeline.
+#       The image is a Ubuntu 20.04 image.
+#
+#       See the documentation for more information.
+#       https://docs.microsoft.com/en-us/azure/devops/pipelines/agents/hosted?view=azure-devops&tabs=yaml
+pool:
+  vmImage: $(ap_vm_image)
+
+
+stages :
+
+  - stage: DestroyInfrastructure
+    displayName: Delete Resource Group
+    jobs:
+    - job: DeleteRG
+      displayName: Delete Resource Group
+      steps:
+      - checkout: self
+        path: s/
+
+        # Delete the resource group
+        # Note: The step uses Azure CLI to create the resource group.
+        #
+        #       See the documentation for more information.
+        #       https://docs.microsoft.com/en-us/cli/azure/group?view=azure-cli-latest#az_group_create
+      - template: /infra/delete-resource-group.yml
+        parameters:
+          rg_name:  $(resource_group)
+          location: $(location)
